@@ -1,0 +1,118 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>疫苗查询 by as</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="icon" href="{% static "icon.jpg" %}">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/mint-ui@1/lib/style.css">
+    <!-- 引入组件库 -->
+{#    <script src="https://unpkg.com/mint-ui@1/lib/index.js"></script>#}
+</head>
+<style type="text/css">
+    .page-header-main{
+        {#min-height: 120vh;#}
+    }
+    .page-title{
+        padding: 20px 0;
+
+        text-align: center;
+        vertical-align: middle;
+    }
+    .page-title-p{
+        font-size: 28px;
+        font-weight: 600;
+        color: #26a2ff;
+    }
+    .page__desc{
+        text-align: center;
+        margin-top: -2px;
+        margin-bottom: 5px;
+        color:#ccc;
+        font-size: 14px;
+    }
+</style>
+<body>
+  <div id="app">
+{#      <mt-header fixed title="疫苗批次号查询"></mt-header>#}
+      <div class="page-header-main">
+          <div class="page-title"><p class="page-title-p">疫苗签发信息查询</p>
+          <p class="page__desc" style="text-align:center;margin-top:-2px;margin-bottom: 5px;">爬取了疫苗鉴定机构公示的2013年-2018年全国疫苗签发信息<br/>希望能帮到疫苗本上只有批次号而没有写生产厂家的父母<br/>返回结果依次是疫苗名称 规格 批次号 有效期 生产企业 签发状态</p>
+          </div>
+          <mt-field label="疫苗名称" placeholder="如狂犬病或水痘" :attr="{maxlength:10}" :value.sync="ymmc"></mt-field>
+        <mt-field label="疫苗批次号" placeholder="如201407196或B3NC4TH001" :attr="{maxlength:12}" :value.sync="ympch"></mt-field>
+        <mt-field label="生产企业" placeholder="如长春长生或武汉生物" :attr="{maxlength:18}" :value.sync="scqy"></mt-field>
+          <button @click.native="handleClick" style="margin-top: 30px;" class="mint-button mint-button--primary mint-button--large">
+              <label class="mint-button-text">查询疫苗信息</label>
+          </button>
+          <input type="hidden" v-model="ymmc" id="ymmc" />
+          <input type="hidden" v-model="ympch" id="ympch" />
+          <input type="hidden" v-model="scqy" id="scqy" />
+          <ul>
+            <li v-for="item in list">
+                <p v-for="items in item">[[items]]</p>
+            </li>
+          </ul>
+      </div>
+      <mt-popup :visible.sync="popupVisible" position="top">
+          [[popup_mgs]]
+      </mt-popup>
+  </div>
+</body>
+<script type="text/javascript" src="https://unpkg.com/jquery@2.2.4/dist/jquery.js"></script>
+  <!-- 先引入 Vue -->
+  <script src="https://unpkg.com/vue@1/dist/vue.js"></script>
+  <!-- 引入组件库 -->
+  <script src="https://unpkg.com/mint-ui@1/lib/index.js"></script>
+  <script>
+      Vue.config.delimiters = ["[[", "]]"];
+    new Vue({
+      el: '#app',
+      methods: {
+        handleClick: function() {
+            const that=this;
+            const ymmc =  $('#ymmc').val();
+            const ympch =  $('#ympch').val();
+            const scqy =  $('#scqy').val();
+            if( ymmc == '' && ympch == '' && scqy == '' ){
+                {#alert('请输入有效参数!');#}
+                that.popup_mgs = '请输入有效参数后重试!';
+                that.popupVisible = true;
+                return false;
+            }
+          $.post("/index_check/",{
+              csrfmiddlewaretoken:'{{ csrf_token }}',
+              'ymmc': ymmc,
+              'ympch':ympch,
+              'scqy':scqy
+              },
+                function(data){
+                    if(data.length == 0){
+                        that.popup_mgs = '没有查到相关数据,请修改输入内容后重试!';
+                        that.popupVisible = true;
+                    }else {
+                        that.list = data
+                    }
+                },"json");
+        }
+      },
+        data:{
+          ymmc:'',
+          ympch:'',
+          scqy:'',
+            list:[],
+            popupVisible:false,
+            popup_mgs:''
+        }
+    });
+  </script>
+<script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1274272654'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1274272654%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    $("#cnzz_stat_icon_1274272654").hide();
+
+</script>
+</html>
